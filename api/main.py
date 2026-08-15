@@ -1,14 +1,17 @@
 import os
-import tempfile
 from typing import List
 from fastapi import FastAPI, UploadFile, File
 from pydantic import BaseModel
 from ingest import run_ingestion, CHROMA_PATH, COLLECTION_NAME
 from rag import ask_rag
-from langchain_openai import OpenAIEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 
-app = FastAPI(title="Supply Chain RAG API", version="1.0")
+app = FastAPI(
+    title="Supply Chain RAG API",
+    description="Local RAG API powered by Ollama and ChromaDB",
+    version="1.0"
+)
 
 class QuestionRequest(BaseModel):
     question: str
@@ -25,7 +28,7 @@ async def ingest_files(files: List[UploadFile] = File(...)):
             f.write(contents)
             
     run_ingestion()
-    return {"message": "Files successfully ingested"}
+    return {"message": f"Successfully ingested {len(files)} files into ChromaDB."}
 
 @app.post("/ask")
 async def ask_question(req: QuestionRequest):
@@ -33,7 +36,7 @@ async def ask_question(req: QuestionRequest):
 
 @app.get("/stats")
 async def get_stats():
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
     vectorstore = Chroma(
         persist_directory=CHROMA_PATH,
         embedding_function=embeddings,
@@ -44,6 +47,6 @@ async def get_stats():
     return {
         "collection_name": COLLECTION_NAME,
         "total_chunks": total_chunks,
-        "embedding_model": "text-embedding-3-small",
-        "llm_model": "gpt-4o"
+        "embedding_model": "nomic-embed-text",
+        "llm_model": "llama3.2"
     }

@@ -3,7 +3,7 @@ import glob
 from dotenv import load_dotenv
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_openai import OpenAIEmbeddings
+from langchain_ollama import OllamaEmbeddings
 from langchain_community.vectorstores import Chroma
 
 load_dotenv()
@@ -26,7 +26,7 @@ def run_ingestion():
             doc.metadata["source"] = filename
         documents.extend(docs)
 
-    # 1200 chars keeps tables, scorecards, and policy clauses intact
+    # 1200 chars preserves scorecards, tables, and penalty clauses intact
     text_splitter = RecursiveCharacterTextSplitter(
         chunk_size=1200,
         chunk_overlap=200,
@@ -34,7 +34,8 @@ def run_ingestion():
     )
     chunks = text_splitter.split_documents(documents)
 
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    # Local Ollama Embeddings
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
     
     Chroma.from_documents(
         documents=chunks,

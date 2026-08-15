@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from langchain_openai import OpenAIEmbeddings, ChatOpenAI
+from langchain_ollama import OllamaEmbeddings, ChatOllama
 from langchain_community.vectorstores import Chroma
 
 load_dotenv()
@@ -14,7 +14,7 @@ Context:
 {context}"""
 
 def ask_rag(question: str, top_k: int = 6):
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
+    embeddings = OllamaEmbeddings(model="nomic-embed-text")
     vectorstore = Chroma(
         persist_directory=CHROMA_PATH,
         embedding_function=embeddings,
@@ -36,7 +36,7 @@ def ask_rag(question: str, top_k: int = 6):
 
     context_text = "\n\n---\n\n".join(context_parts)
 
-    llm = ChatOpenAI(model_name="gpt-4o", temperature=0.1)
+    llm = ChatOllama(model="llama3.2", temperature=0.1)
     
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT.format(context=context_text)},
